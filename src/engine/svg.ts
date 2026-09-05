@@ -211,6 +211,13 @@ export interface RenderOptions {
   /** image href for the background (URL or data URL). null = transparent (live canvas beneath). */
   bgHref: string | null;
   animate?: boolean;
+  /**
+   * Freezes every looping animation at this instant (in seconds) by baking the
+   * computed transforms into the markup instead of emitting CSS keyframes.
+   * Required for frame-by-frame video capture, where CSS animation cannot be
+   * seeked. Leave undefined for the live preview and for static exports.
+   */
+  timeSec?: number;
   fontCss?: string;
   forExport?: boolean;
 }
@@ -226,6 +233,8 @@ interface Ctx {
   fmt: Format;
   bg: string | null;
   animate: boolean;
+  /** Baked animation instant in seconds, or null to emit CSS keyframes. */
+  time: number | null;
   slide: number;
   ink: string;
   dim: string;
@@ -352,10 +361,63 @@ function brutalist(c: Ctx) {
   return s;
 }
 
+/* ─────────────────────── animation timing (bakeable) ────────────────────── */
+
+/** Solves a CSS `cubic-bezier(x1,y1,x2,y2)` timing function for a given progress. */
+function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
+  const cx = 3 * x1;
+  const bx = 3 * (x2 - x1) - cx;
+  const ax = 1 - cx - bx;
+  const cy = 3 * y1;
+  const by = 3 * (y2 - y1) - cy;
+  const ay = 1 - cy - by;
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t;
+  const slopeX = (t: number) => (3 * ax * t + 2 * bx) * t + cx;
+  return (x: number) => {
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const dx = sampleX(t) - x;
+      if (Math.abs(dx) < 1e-6) break;
+      const d = slopeX(t);
+      if (Math.abs(d) < 1e-6) break;
+      t -= dx / d;
+    }
+    t = Math.min(1, Math.max(0, t));
+    return ((ay * t + by) * t + cy) * t;
+  };
+}
+
+const PULSE_EASE = cubicBezier(0.45, 0, 0.55, 1);
+
+/** Normalized progress [0,1) of a looping animation of `dur` seconds at time `t`. */
+const loopProgress = (t: number, dur: number) => (((t % dur) + dur) % dur) / dur;
+
+/** Marquee `translateX` at time `t` — mirrors `@keyframes mq` (linear, infinite). */
+const marqueeShift = (t: number, dur: number, unitW: number, reverse: boolean) => {
+  const p = loopProgress(t, dur);
+  return -unitW * (reverse ? 1 - p : p);
+};
+
+/** Equalizer bar `scaleY` at time `t` — mirrors `@keyframes pulse` (alternate). */
+const pulseScale = (t: number, delay: number) => {
+  const te = t - delay;
+  if (te <= 0) return 0.15;
+  const iteration = Math.floor(te / 2.6);
+  let p = (te % 2.6) / 2.6;
+  if (iteration % 2 === 1) p = 1 - p;
+  return 0.15 + 0.85 * PULSE_EASE(p);
+};
+
+/** `● REC` opacity at time `t` — mirrors `@keyframes blink` with `steps(2,end)`. */
+const blinkOpacity = (t: number) => (loopProgress(t, 1.2) < 0.5 ? 1 : 0);
+
 function kinetic(c: Ctx) {
   const { W, H, P } = c;
   const uid = c.uid;
   let s = bgLayer(c, `<rect width="${W}" height="${H}" fill="#080808" fill-opacity="0.42"/><rect width="${W}" height="${H}" fill="url(#${uid}-fadeB)" opacity="0.7"/>`);
+  // `null` = live CSS keyframes; a number = every loop frozen at that instant so
+  // the frame can be rasterized deterministically (video capture).
+  const t = c.time;
   const play = c.animate ? "running" : "paused";
   const text = plain(c.post.headline).replace(/\.$/, "");
   const unit = `${text}  —  `;
@@ -364,25 +426,33 @@ function kinetic(c: Ctx) {
   const reps = Math.ceil((W * 2) / unitW) + 2;
   const repeated = Array.from({ length: reps }, () => unit).join("");
   const bars = 28;
-  s += `<style>
-.${uid}-mq1{animation:${uid}-mq ${(unitW / 90).toFixed(1)}s linear infinite;animation-play-state:${play}}
-.${uid}-mq2{animation:${uid}-mq ${(unitW / 70).toFixed(1)}s linear infinite reverse;animation-play-state:${play}}
-.${uid}-mq3{animation:${uid}-mq ${(unitW / 110).toFixed(1)}s linear infinite;animation-play-state:${play}}
+  const mqDur = [unitW / 90, unitW / 70, unitW / 110];
+  const mqReverse = [false, true, false];
+  const spinDur = 22;
+  if (t === null) {
+    s += `<style>
+.${uid}-mq1{animation:${uid}-mq ${mqDur[0].toFixed(1)}s linear infinite;animation-play-state:${play}}
+.${uid}-mq2{animation:${uid}-mq ${mqDur[1].toFixed(1)}s linear infinite reverse;animation-play-state:${play}}
+.${uid}-mq3{animation:${uid}-mq ${mqDur[2].toFixed(1)}s linear infinite;animation-play-state:${play}}
 @keyframes ${uid}-mq{to{transform:translateX(${-unitW.toFixed(1)}px)}}
-.${uid}-ring{animation:${uid}-spin 22s linear infinite;animation-play-state:${play};transform-origin:${(W / 2).toFixed(1)}px ${(H * 0.5).toFixed(1)}px}
+.${uid}-ring{animation:${uid}-spin ${spinDur}s linear infinite;animation-play-state:${play};transform-origin:${(W / 2).toFixed(1)}px ${(H * 0.5).toFixed(1)}px}
 @keyframes ${uid}-spin{to{transform:rotate(360deg)}}
 .${uid}-bar{transform-box:fill-box;transform-origin:bottom;animation:${uid}-pulse 2.6s cubic-bezier(.45,0,.55,1) infinite alternate;animation-play-state:${play}}
 @keyframes ${uid}-pulse{from{transform:scaleY(0.15)}to{transform:scaleY(1)}}
 .${uid}-blink{animation:${uid}-blink 1.2s steps(2,end) infinite;animation-play-state:${play}}
 @keyframes ${uid}-blink{50%{opacity:0}}
 </style>`;
+  }
   // marquee bands (outline)
   const bandY = [c.top + P + 230, H * 0.5 + 40, H - c.bottom - P - 210];
   s += `<g id="MARQUEE">`;
   bandY.forEach((y, i) => {
-    const cls = `${uid}-mq${i + 1}`;
     const x0 = i === 1 ? -unitW : 0;
-    s += `<g class="${cls}"><text x="${x0}" y="${y}" font-family="${FD}" font-size="${bandSize}" fill="none" stroke="${c.ink}" stroke-width="1.1" stroke-opacity="${i === 1 ? 0.28 : 0.5}" letter-spacing="-2" xml:space="preserve">${esc(repeated)}</text></g>`;
+    const band =
+      t === null
+        ? `<g class="${uid}-mq${i + 1}">`
+        : `<g transform="translate(${marqueeShift(t, mqDur[i], unitW, mqReverse[i]).toFixed(2)} 0)">`;
+    s += `${band}<text x="${x0}" y="${y}" font-family="${FD}" font-size="${bandSize}" fill="none" stroke="${c.ink}" stroke-width="1.1" stroke-opacity="${i === 1 ? 0.28 : 0.5}" letter-spacing="-2" xml:space="preserve">${esc(repeated)}</text></g>`;
   });
   s += `</g>`;
   // rotating ring
@@ -390,7 +460,11 @@ function kinetic(c: Ctx) {
   const cy = H * 0.5;
   const r = Math.min(W, H) * 0.31;
   const ringText = "DESCO · LABORATÓRIO DE ESTRATÉGIA · DESIGN · RUPTURA VISUAL · BAURU/SP · EST. 2015 · ";
-  s += `<g id="RING" class="${uid}-ring"><defs><path id="${uid}-circ" d="M ${cx} ${cy} m -${r} 0 a ${r} ${r} 0 1 1 ${r * 2} 0 a ${r} ${r} 0 1 1 -${r * 2} 0"/></defs>`;
+  const ringAttr =
+    t === null
+      ? ` class="${uid}-ring"`
+      : ` transform="rotate(${(loopProgress(t, spinDur) * 360).toFixed(3)} ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
+  s += `<g id="RING"${ringAttr}><defs><path id="${uid}-circ" d="M ${cx} ${cy} m -${r} 0 a ${r} ${r} 0 1 1 ${r * 2} 0 a ${r} ${r} 0 1 1 -${r * 2} 0"/></defs>`;
   s += `<circle cx="${cx}" cy="${cy}" r="${r - 26}" fill="none" stroke="${c.accent}" stroke-width="1" stroke-opacity="0.7" stroke-dasharray="2 8"/>`;
   s += `<text font-family="${FM}" font-size="15" fill="${c.accent}" letter-spacing="4"><textPath xlink:href="#${uid}-circ" href="#${uid}-circ">${esc(ringText)}</textPath></text></g>`;
   // central headline
@@ -409,11 +483,21 @@ function kinetic(c: Ctx) {
   s += `<g id="BARS">`;
   for (let i = 0; i < bars; i++) {
     const h = 26 + Math.abs(Math.sin(i * 0.7 + c.post.id)) * 54;
-    const delay = (i * 0.09).toFixed(2);
-    s += `<rect class="${uid}-bar" x="${(P + i * step - barW / 2).toFixed(1)}" y="${baseY - h}" width="${barW}" height="${h}" fill="${i % 7 === 0 ? c.accent : c.ink}" opacity="${i % 7 === 0 ? 1 : 0.55}" style="animation-delay:${delay}s"/>`;
+    const delay = i * 0.09;
+    const x = (P + i * step - barW / 2).toFixed(1);
+    const fill = i % 7 === 0 ? c.accent : c.ink;
+    const opacity = i % 7 === 0 ? 1 : 0.55;
+    if (t === null) {
+      s += `<rect class="${uid}-bar" x="${x}" y="${baseY - h}" width="${barW}" height="${h}" fill="${fill}" opacity="${opacity}" style="animation-delay:${delay.toFixed(2)}s"/>`;
+    } else {
+      // scaleY about the bar's bottom edge, baked into y/height
+      const bh = h * pulseScale(t, delay);
+      s += `<rect x="${x}" y="${(baseY - bh).toFixed(2)}" width="${barW}" height="${bh.toFixed(2)}" fill="${fill}" opacity="${opacity}"/>`;
+    }
   }
   s += `</g>`;
-  s += `<g id="STATUS">${mono("● REC", W - P, c.top + P + 80, 13, c.accent, { anchor: "end", extra: `class="${uid}-blink"` })}${mono("LOOP / 00:00:24", W - P, c.top + P + 102, 13, c.ink, { anchor: "end", opacity: 0.55 })}</g>`;
+  const rec = t === null ? { extra: `class="${uid}-blink"` } : { opacity: blinkOpacity(t) };
+  s += `<g id="STATUS">${mono("● REC", W - P, c.top + P + 80, 13, c.accent, { anchor: "end", ...rec })}${mono("LOOP / 00:00:24", W - P, c.top + P + 102, 13, c.ink, { anchor: "end", opacity: 0.55 })}</g>`;
   s += chrome(c);
   return s;
 }
@@ -672,6 +756,26 @@ export function slideCount(post: Post) {
   return post.archetype === "carousel" ? (post.slides?.length ?? 1) : 1;
 }
 
+/**
+ * Renders only the treated background image, sized to the post canvas.
+ *
+ * The video exporter composites in two layers: this one is rasterized once (it
+ * never moves), and the animated foreground is rendered per frame with
+ * `bgHref: null` so it stays transparent where the background shows through.
+ */
+export function renderBackgroundSVG(post: Post, format: Format, bgHref: string): string {
+  const { w: W, h: H } = FORMATS[format];
+  const uid = `p${post.id}${format[0]}bg`;
+  const paper = post.theme === "paper" && post.archetype === "minimal";
+  const treatment = post.background.type === "photo" ? post.background.treatment : undefined;
+  const filter = treatment ? ` filter="url(#${uid}-${treatment})"` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+<defs>${filters(uid)}</defs>
+<rect width="${W}" height="${H}" fill="${paper ? BRAND.colors.paper : BRAND.colors.bg}"/>
+<image xlink:href="${bgHref}" href="${bgHref}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"${filter}/>
+</svg>`;
+}
+
 export function renderPostSVG(post: Post, opts: RenderOptions): string {
   const fmt = opts.format;
   const { w: W, h: H } = FORMATS[fmt];
@@ -690,6 +794,7 @@ export function renderPostSVG(post: Post, opts: RenderOptions): string {
     fmt,
     bg: opts.bgHref,
     animate: opts.animate ?? true,
+    time: opts.timeSec ?? null,
     slide,
     ink: BRAND.colors.fg,
     dim: BRAND.colors.fgDim,

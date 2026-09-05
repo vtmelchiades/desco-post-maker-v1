@@ -548,6 +548,36 @@ button {
   color: var(--accent);
   margin-bottom: 0.6rem;
 }
+/* MP4 export */
+.vid-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.vid-row__go { flex: 1; justify-content: center; }
+.seg--tight button { padding: 0.5rem 0.6rem; font-size: 0.6rem; letter-spacing: 0.08em; }
+.seg--tight button:disabled { opacity: 0.45; }
+.vid-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.65rem;
+}
+.vid-progress__track {
+  flex: 1;
+  height: 3px;
+  background: var(--line-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.vid-progress__fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.12s linear;
+}
+.vid-progress .mono-small { white-space: nowrap; }
+
 .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 0.8rem; }
 .tabs button {
   background: transparent;

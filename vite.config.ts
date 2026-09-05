@@ -16,4 +16,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  server: {
+    // Honour PORT so the dev server can be started on an assigned port.
+    port: Number(process.env.PORT) || 5173,
+  },
 });

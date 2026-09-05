@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Download,
   FileCode2,
+  Film,
   FileText,
   Image as ImageIcon,
   Package,
@@ -19,6 +20,15 @@ import type { Format, Post } from "../data/types";
 import { ShaderRenderer, shaderSnapshot, SHADER_LABELS } from "../engine/shaders";
 import { renderPostSVG, slideCount } from "../engine/svg";
 import { captionFile, downloadPNG, downloadSVG, downloadText, exportPostZip, promptFile, type ExportSettings } from "../engine/exporter";
+import {
+  exportPostVideo,
+  hasMotion,
+  liveShaderFor,
+  VIDEO_DURATIONS,
+  VIDEO_SUPPORTED,
+  type VideoDuration,
+  type VideoProgress,
+} from "../engine/video";
 
 interface Props {
   post: Post;
@@ -58,6 +68,8 @@ export default function PostModal({
   const [tab, setTab] = useState<"legenda" | "prompt" | "dados">("legenda");
   const [dragging, setDragging] = useState(false);
   const [localBusy, setLocalBusy] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState<VideoDuration>(15);
+  const [videoProgress, setVideoProgress] = useState<VideoProgress | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const n = slideCount(post);
@@ -65,11 +77,8 @@ export default function PostModal({
 
   useEffect(() => setSlide(0), [post.id]);
 
-  const liveShader =
-    !override &&
-    post.background.type === "shader" &&
-    post.archetype !== "minimal" &&
-    post.archetype !== "split";
+  const liveShader = liveShaderFor(post, override);
+  const motion = hasMotion(post, override);
 
   const bgHref = useMemo(() => {
     if (override) return override;
@@ -316,11 +325,70 @@ export default function PostModal({
                   <Sparkles size={13} /> image_prompt.txt
                 </button>
               </div>
+
+              {motion && (
+                <div className="vid-row">
+                  <button
+                    className="btn btn--accent vid-row__go"
+                    disabled={isBusy || !VIDEO_SUPPORTED}
+                    title={
+                      VIDEO_SUPPORTED
+                        ? `Grava ${videoDuration}s da animação em H.264`
+                        : "Requer um navegador com WebCodecs (Chrome, Edge, Safari 16.4+, Firefox 130+)"
+                    }
+                    onClick={() =>
+                      run("mp4", async () => {
+                        try {
+                          await exportPostVideo(post, format, slide, settings, {
+                            duration: videoDuration,
+                            onProgress: setVideoProgress,
+                          });
+                        } finally {
+                          setVideoProgress(null);
+                        }
+                      })
+                    }
+                  >
+                    <Film size={13} /> Exportar MP4 {videoDuration}s
+                  </button>
+                  <div className="seg seg--tight" aria-label="Duração do vídeo">
+                    {VIDEO_DURATIONS.map((d) => (
+                      <button
+                        key={d}
+                        className={d === videoDuration ? "is-on" : ""}
+                        disabled={isBusy}
+                        onClick={() => setVideoDuration(d)}
+                      >
+                        {d}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {motion && videoProgress && (
+                <div className="vid-progress" role="status" aria-live="polite">
+                  <div className="vid-progress__track">
+                    <div
+                      className="vid-progress__fill"
+                      style={{ width: `${Math.round((videoProgress.done / videoProgress.total) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="mono-small dim">{videoProgress.label}</span>
+                </div>
+              )}
+
               <p className="mono-small dim mt-3">
                 ZIP: /feed/{FORMATS.feed.file}.png|svg · /story/{FORMATS.story.file}.png|svg · legenda.txt · image_prompt.txt
                 {n > 1 ? ` · ${n} lâminas por formato` : ""}
               </p>
-              {localBusy && (
+              {motion && (
+                <p className="mono-small dim mt-2">
+                  MP4 {FORMATS[format].w}×{FORMATS[format].h} · 30 fps · H.264 — grava a animação que roda no preview
+                  {liveShader ? " (incluindo o fundo WebGL)" : ""}. O SVG é estático por natureza; use o MP4 para o
+                  movimento.
+                </p>
+              )}
+              {localBusy && !videoProgress && (
                 <p className="mono-small accent mt-2 flex items-center gap-2">
                   <Download size={12} /> Gerando {localBusy.toUpperCase()}…
                 </p>
