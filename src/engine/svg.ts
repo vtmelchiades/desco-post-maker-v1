@@ -1,5 +1,7 @@
 import { BRAND, FORMATS, pillarById } from "../data/brand";
 import type { Format, Post } from "../data/types";
+import { LOGO_10_ANOS, LOGO_DESCO, type LogoArt } from "../data/logos";
+import { postsData } from "../data/posts";
 
 /* ───────────────────────────── text measuring ───────────────────────────── */
 
@@ -218,6 +220,13 @@ export interface RenderOptions {
    * seeked. Leave undefined for the live preview and for static exports.
    */
   timeSec?: number;
+  /**
+   * Length of the loop the frames belong to, in seconds. Every looping
+   * animation is retimed to complete a whole number of cycles within it, so the
+   * last frame lands exactly where the first one started. Only meaningful
+   * alongside `timeSec`.
+   */
+  loopSec?: number;
   fontCss?: string;
   forExport?: boolean;
 }
@@ -235,6 +244,8 @@ interface Ctx {
   animate: boolean;
   /** Baked animation instant in seconds, or null to emit CSS keyframes. */
   time: number | null;
+  /** Loop length in seconds that animations must divide into, or null for natural timing. */
+  loop: number | null;
   slide: number;
   ink: string;
   dim: string;
@@ -247,6 +258,29 @@ interface Ctx {
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Position of a post inside its own pillar.
+ *
+ * The numerals that appear as artwork used to be the global id, so a campaign
+ * post could open with a colossal "56" — a number that means nothing to anyone
+ * outside the spreadsheet. Numbering within the pillar reads as a chapter mark.
+ */
+const pillarIndex = (() => {
+  let cache: Map<number, number> | null = null;
+  return (post: Post) => {
+    if (!cache) {
+      cache = new Map();
+      const seen = new Map<string, number>();
+      for (const p of postsData) {
+        const n = (seen.get(p.pillar) ?? 0) + 1;
+        seen.set(p.pillar, n);
+        cache.set(p.id, n);
+      }
+    }
+    return cache.get(post.id) ?? post.id;
+  };
+})();
 
 function filters(uid: string) {
   return `
@@ -290,9 +324,35 @@ function monoBlock(text: string, x: number, y: number, size: number, maxW: numbe
   };
 }
 
-function brandMark(c: Ctx, x: number, y: number, ink: string, size = 40) {
-  return `<g id="brand-mark"><circle cx="${x + size * 0.22}" cy="${y - size * 0.3}" r="${size * 0.2}" fill="${c.accent}"/><text x="${x + size * 0.58}" y="${y}" font-family="${FD}" font-size="${size}" fill="${ink}" letter-spacing="-0.5">Desco</text></g>`;
+/**
+ * Places brand artwork with the left edge of its ink box at `x` and its baseline
+ * at `y`. Aligning on measured ink rather than the artboard is what lets a logo
+ * sit optically level with the type beside it.
+ */
+function logoArt(art: LogoArt, x: number, y: number, width: number, ink: string) {
+  const k = width / art.box.w;
+  const tx = x - art.box.x * k;
+  const ty = y - (art.baseline ?? art.box.y + art.box.h) * k;
+  let out = `<g id="brand-mark" transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${k.toFixed(5)})">`;
+  out += `<g fill="${ink}">${art.art}</g>`;
+  if (art.accent) out += `<g fill="${art.accentColor}">${art.accent}</g>`;
+  out += `</g>`;
+  return out;
 }
+
+/** Posts in the anniversary pillar sign off with the campaign lockup. */
+const signatureArt = (post: Post) => (post.pillar === "decada" ? LOGO_10_ANOS : LOGO_DESCO);
+
+function brandMark(c: Ctx, x: number, y: number, ink: string) {
+  const art = signatureArt(c.post);
+  return logoArt(art, x, y, art === LOGO_10_ANOS ? 168 : 128, ink);
+}
+
+/**
+ * The colophon (city, coordinates, handle) is a closing gesture, not furniture —
+ * on every post it reads as a template. Opt in per post, otherwise every fifth.
+ */
+const showColophon = (post: Post) => post.colophon ?? post.id % 5 === 0;
 
 function chrome(c: Ctx, opts: { hideBrand?: boolean; ink?: string } = {}) {
   const ink = opts.ink ?? c.ink;
@@ -302,11 +362,12 @@ function chrome(c: Ctx, opts: { hideBrand?: boolean; ink?: string } = {}) {
   let s = `<g id="META">`;
   s += `<rect x="${c.P}" y="${yTop - 12}" width="11" height="11" fill="${c.accent}"/>`;
   s += mono(`Desco / ${pillar.short} — ${c.post.tag}`, c.P + 24, yTop - 2, 15, ink, { opacity: 0.85 });
-  s += mono(`N°${pad2(c.post.id)} / 50`, c.W - c.P, yTop - 2, 15, ink, { anchor: "end", opacity: 0.85 });
   s += `<line x1="${c.P}" y1="${yTop + 16}" x2="${c.W - c.P}" y2="${yTop + 16}" stroke="${c.line}" stroke-width="1"/>`;
-  if (!opts.hideBrand) s += brandMark(c, c.P, yBot, ink, 38);
-  s += mono(`${BRAND.city} — ${BRAND.coords}`, c.W - c.P, yBot - 18, 13, ink, { anchor: "end", opacity: 0.6 });
-  s += mono(`${BRAND.handle} · ${BRAND.est}`, c.W - c.P, yBot + 2, 13, ink, { anchor: "end", opacity: 0.6 });
+  if (!opts.hideBrand) s += brandMark(c, c.P, yBot, ink);
+  if (showColophon(c.post)) {
+    s += mono(`${BRAND.city} — ${BRAND.coords}`, c.W - c.P, yBot - 18, 13, ink, { anchor: "end", opacity: 0.6 });
+    s += mono(`${BRAND.handle} · ${BRAND.est}`, c.W - c.P, yBot + 2, 13, ink, { anchor: "end", opacity: 0.6 });
+  }
   s += `</g>`;
   return s;
 }
@@ -339,7 +400,7 @@ function brutalist(c: Ctx) {
   s += `</g>`;
   // huge index
   const idxSize = Math.round(W * 0.3);
-  s += `<g id="INDEX"><text x="${W - P - 8}" y="${c.top + P + idxSize * 0.86}" font-family="${FD}" font-size="${idxSize}" fill="none" stroke="${c.ink}" stroke-width="1.4" stroke-opacity="0.55" text-anchor="end" letter-spacing="-8">${pad2(c.post.id)}</text></g>`;
+  s += `<g id="INDEX"><text x="${W - P - 8}" y="${c.top + P + idxSize * 0.86}" font-family="${FD}" font-size="${idxSize}" fill="none" stroke="${c.ink}" stroke-width="1.4" stroke-opacity="0.55" text-anchor="end" letter-spacing="-8">${pad2(pillarIndex(c.post))}</text></g>`;
   // headline
   const runs = parseRuns(c.post.headline);
   const maxW = W - P * 2 - 30;
@@ -389,27 +450,59 @@ function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
 
 const PULSE_EASE = cubicBezier(0.45, 0, 0.55, 1);
 
-/** Normalized progress [0,1) of a looping animation of `dur` seconds at time `t`. */
-const loopProgress = (t: number, dur: number) => (((t % dur) + dur) % dur) / dur;
+/**
+ * Whole cycles of a `natural`-second animation that fit in a `loop`-second clip.
+ * The nearest count keeps the speed change as small as the geometry allows — and
+ * it cannot always be small: a marquee only lands back on itself after
+ * travelling a full text unit, so a loop shorter than its natural period must
+ * speed it up. That is arithmetic, not a tuning choice.
+ */
+const lockCycles = (natural: number, loop: number) => Math.max(1, Math.round(loop / natural));
+
+/** Retimed period, used for the CSS durations on the live-preview path. */
+const lockPeriod = (natural: number, loop: number | null) =>
+  loop === null ? natural : loop / lockCycles(natural, loop);
+
+/**
+ * Position within one cycle, in [0,1).
+ *
+ * Under a loop the phase is derived from the integer cycle count over the clip
+ * length rather than a modulo of the retimed period: `t % period` accumulates
+ * float error and at t = loop it lands a hair *below* the cycle boundary instead
+ * of on it, which reopens the seam the retiming exists to close.
+ */
+function cyclePhase(t: number, natural: number, loop: number | null) {
+  const x = loop === null ? t / natural : (t * lockCycles(natural, loop)) / loop;
+  return x - Math.floor(x);
+}
 
 /** Marquee `translateX` at time `t` — mirrors `@keyframes mq` (linear, infinite). */
-const marqueeShift = (t: number, dur: number, unitW: number, reverse: boolean) => {
-  const p = loopProgress(t, dur);
+const marqueeShift = (t: number, natural: number, loop: number | null, unitW: number, reverse: boolean) => {
+  const p = cyclePhase(t, natural, loop);
   return -unitW * (reverse ? 1 - p : p);
 };
 
 /** Equalizer bar `scaleY` at time `t` — mirrors `@keyframes pulse` (alternate). */
-const pulseScale = (t: number, delay: number) => {
-  const te = t - delay;
-  if (te <= 0) return 0.15;
-  const iteration = Math.floor(te / 2.6);
-  let p = (te % 2.6) / 2.6;
-  if (iteration % 2 === 1) p = 1 - p;
-  return 0.15 + 0.85 * PULSE_EASE(p);
+const pulseScale = (t: number, delay: number, loop: number | null) => {
+  // `alternate` is a triangle over the 5.2s round trip; reading it that way
+  // avoids a floor()-parity test that can flip a frame at the seam.
+  let p: number;
+  if (loop === null) {
+    // Outside a loop, `animation-delay` holds the from-value until the bar starts.
+    const te = t - delay;
+    if (te <= 0) return 0.15;
+    p = cyclePhase(te, 5.2, null);
+  } else {
+    // Inside one, the same figure has to be read as a phase offset: a bar still
+    // waiting at t=0 would not be waiting again at t=D, and the seam shows.
+    p = cyclePhase(t + delay, 5.2, loop);
+  }
+  const tri = p < 0.5 ? p * 2 : 2 - p * 2;
+  return 0.15 + 0.85 * PULSE_EASE(tri);
 };
 
 /** `● REC` opacity at time `t` — mirrors `@keyframes blink` with `steps(2,end)`. */
-const blinkOpacity = (t: number) => (loopProgress(t, 1.2) < 0.5 ? 1 : 0);
+const blinkOpacity = (t: number, loop: number | null) => (cyclePhase(t, 1.2, loop) < 0.5 ? 1 : 0);
 
 function kinetic(c: Ctx) {
   const { W, H, P } = c;
@@ -426,20 +519,23 @@ function kinetic(c: Ctx) {
   const reps = Math.ceil((W * 2) / unitW) + 2;
   const repeated = Array.from({ length: reps }, () => unit).join("");
   const bars = 28;
-  const mqDur = [unitW / 90, unitW / 70, unitW / 110];
   const mqReverse = [false, true, false];
-  const spinDur = 22;
+  const mqNatural = [unitW / 90, unitW / 70, unitW / 110];
+  const mqDur = mqNatural.map((d) => lockPeriod(d, c.loop));
+  const spinDur = lockPeriod(22, c.loop);
+  const pulseHalf = lockPeriod(5.2, c.loop) / 2;
+  const blinkDur = lockPeriod(1.2, c.loop);
   if (t === null) {
     s += `<style>
 .${uid}-mq1{animation:${uid}-mq ${mqDur[0].toFixed(1)}s linear infinite;animation-play-state:${play}}
 .${uid}-mq2{animation:${uid}-mq ${mqDur[1].toFixed(1)}s linear infinite reverse;animation-play-state:${play}}
 .${uid}-mq3{animation:${uid}-mq ${mqDur[2].toFixed(1)}s linear infinite;animation-play-state:${play}}
 @keyframes ${uid}-mq{to{transform:translateX(${-unitW.toFixed(1)}px)}}
-.${uid}-ring{animation:${uid}-spin ${spinDur}s linear infinite;animation-play-state:${play};transform-origin:${(W / 2).toFixed(1)}px ${(H * 0.5).toFixed(1)}px}
+.${uid}-ring{animation:${uid}-spin ${spinDur.toFixed(2)}s linear infinite;animation-play-state:${play};transform-origin:${(W / 2).toFixed(1)}px ${(H * 0.5).toFixed(1)}px}
 @keyframes ${uid}-spin{to{transform:rotate(360deg)}}
-.${uid}-bar{transform-box:fill-box;transform-origin:bottom;animation:${uid}-pulse 2.6s cubic-bezier(.45,0,.55,1) infinite alternate;animation-play-state:${play}}
+.${uid}-bar{transform-box:fill-box;transform-origin:bottom;animation:${uid}-pulse ${pulseHalf.toFixed(2)}s cubic-bezier(.45,0,.55,1) infinite alternate;animation-play-state:${play}}
 @keyframes ${uid}-pulse{from{transform:scaleY(0.15)}to{transform:scaleY(1)}}
-.${uid}-blink{animation:${uid}-blink 1.2s steps(2,end) infinite;animation-play-state:${play}}
+.${uid}-blink{animation:${uid}-blink ${blinkDur.toFixed(2)}s steps(2,end) infinite;animation-play-state:${play}}
 @keyframes ${uid}-blink{50%{opacity:0}}
 </style>`;
   }
@@ -451,7 +547,7 @@ function kinetic(c: Ctx) {
     const band =
       t === null
         ? `<g class="${uid}-mq${i + 1}">`
-        : `<g transform="translate(${marqueeShift(t, mqDur[i], unitW, mqReverse[i]).toFixed(2)} 0)">`;
+        : `<g transform="translate(${marqueeShift(t, mqNatural[i], c.loop, unitW, mqReverse[i]).toFixed(2)} 0)">`;
     s += `${band}<text x="${x0}" y="${y}" font-family="${FD}" font-size="${bandSize}" fill="none" stroke="${c.ink}" stroke-width="1.1" stroke-opacity="${i === 1 ? 0.28 : 0.5}" letter-spacing="-2" xml:space="preserve">${esc(repeated)}</text></g>`;
   });
   s += `</g>`;
@@ -463,7 +559,7 @@ function kinetic(c: Ctx) {
   const ringAttr =
     t === null
       ? ` class="${uid}-ring"`
-      : ` transform="rotate(${(loopProgress(t, spinDur) * 360).toFixed(3)} ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
+      : ` transform="rotate(${(cyclePhase(t, 22, c.loop) * 360).toFixed(3)} ${cx.toFixed(1)} ${cy.toFixed(1)})"`;
   s += `<g id="RING"${ringAttr}><defs><path id="${uid}-circ" d="M ${cx} ${cy} m -${r} 0 a ${r} ${r} 0 1 1 ${r * 2} 0 a ${r} ${r} 0 1 1 -${r * 2} 0"/></defs>`;
   s += `<circle cx="${cx}" cy="${cy}" r="${r - 26}" fill="none" stroke="${c.accent}" stroke-width="1" stroke-opacity="0.7" stroke-dasharray="2 8"/>`;
   s += `<text font-family="${FM}" font-size="15" fill="${c.accent}" letter-spacing="4"><textPath xlink:href="#${uid}-circ" href="#${uid}-circ">${esc(ringText)}</textPath></text></g>`;
@@ -491,12 +587,12 @@ function kinetic(c: Ctx) {
       s += `<rect class="${uid}-bar" x="${x}" y="${baseY - h}" width="${barW}" height="${h}" fill="${fill}" opacity="${opacity}" style="animation-delay:${delay.toFixed(2)}s"/>`;
     } else {
       // scaleY about the bar's bottom edge, baked into y/height
-      const bh = h * pulseScale(t, delay);
+      const bh = h * pulseScale(t, delay, c.loop);
       s += `<rect x="${x}" y="${(baseY - bh).toFixed(2)}" width="${barW}" height="${bh.toFixed(2)}" fill="${fill}" opacity="${opacity}"/>`;
     }
   }
   s += `</g>`;
-  const rec = t === null ? { extra: `class="${uid}-blink"` } : { opacity: blinkOpacity(t) };
+  const rec = t === null ? { extra: `class="${uid}-blink"` } : { opacity: blinkOpacity(t, c.loop) };
   s += `<g id="STATUS">${mono("● REC", W - P, c.top + P + 80, 13, c.accent, { anchor: "end", ...rec })}${mono("LOOP / 00:00:24", W - P, c.top + P + 102, 13, c.ink, { anchor: "end", opacity: 0.55 })}</g>`;
   s += chrome(c);
   return s;
@@ -632,7 +728,7 @@ function minimal(c: Ctx) {
   s += `<g id="SIDE" transform="rotate(90 ${fx + fw - 26} ${fy + 40})">${mono(`${BRAND.name} — ${BRAND.tagline}`, fx + fw - 26, fy + 40, 12, dim, { ls: 3 })}</g>`;
   // small caption next to image
   s += `<g id="CAPTION">`;
-  s += mono(`FIG. ${pad2(c.post.id)}`, fx + 40, iy + 14, 12, dim);
+  s += mono(`FIG. ${pad2(pillarIndex(c.post))}`, fx + 40, iy + 14, 12, dim);
   s += mono(c.post.meta.client, fx + 40, iy + 36, 12, dim, { upper: false, ls: 0 });
   s += `<circle cx="${fx + 48}" cy="${iy + ih - 6}" r="8" fill="${c.accent}"/>`;
   s += `</g>`;
@@ -657,10 +753,11 @@ function minimal(c: Ctx) {
   s += `</g>`;
   // chrome (custom for frame)
   s += `<g id="META">`;
-  s += brandMark(c, fx + 36, fy + 58, ink, 32);
-  s += mono(`/ ${pillarById(c.post.pillar).short}`, fx + 150, fy + 50, 12, dim);
-  s += mono(`N°${pad2(c.post.id)} / 50`, ix - 40, fy + 50, 12, dim, { anchor: "end" });
-  s += mono(`${BRAND.city} — ${BRAND.coords}`, ix - 40, fy + 70, 11, dim, { anchor: "end" });
+  s += brandMark(c, fx + 36, fy + 58, ink);
+  s += mono(`/ ${pillarById(c.post.pillar).short}`, fx + 190, fy + 50, 12, dim);
+  if (showColophon(c.post)) {
+    s += mono(`${BRAND.city} — ${BRAND.coords}`, ix - 40, fy + 56, 11, dim, { anchor: "end" });
+  }
   s += `</g>`;
   return s;
 }
@@ -795,6 +892,7 @@ export function renderPostSVG(post: Post, opts: RenderOptions): string {
     bg: opts.bgHref,
     animate: opts.animate ?? true,
     time: opts.timeSec ?? null,
+    loop: opts.loopSec ?? null,
     slide,
     ink: BRAND.colors.fg,
     dim: BRAND.colors.fgDim,

@@ -36,7 +36,7 @@ export function hasMotion(post: Post, override?: string) {
 
 /* ──────────────────────────────── options ───────────────────────────────── */
 
-export const VIDEO_DURATIONS = [5, 10, 15] as const;
+export const VIDEO_DURATIONS = [5, 10, 15, 20] as const;
 export type VideoDuration = (typeof VIDEO_DURATIONS)[number];
 
 export interface VideoProgress {
@@ -48,6 +48,8 @@ export interface VideoProgress {
 export interface VideoOptions {
   duration?: number;
   fps?: number;
+  /** Make the last frame join the first seamlessly. On by default. */
+  loop?: boolean;
   onProgress?: (p: VideoProgress) => void;
 }
 
@@ -55,6 +57,14 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /** Shader clock offset, matching the still exports and the preview's start time. */
 const SHADER_T0 = 4.2;
+
+/**
+ * Tail of a looping clip spent dissolving the background back into its own first
+ * frame. The vector layer is retimed to land exactly on the seam, but the WebGL
+ * fields are noise — they have no period to land on, so the join is hidden by a
+ * cross-dissolve instead. On a soft, drifting field it reads as nothing at all.
+ */
+const LOOP_XFADE = 1.2;
 
 /* ─────────────────────────────── rasterizing ────────────────────────────── */
 
@@ -116,6 +126,7 @@ export async function exportPostVideo(
 
   const fps = opts.fps ?? 30;
   const duration = opts.duration ?? 15;
+  const loop = opts.loop ?? true;
   const { w, h } = FORMATS[format];
   const totalFrames = Math.max(1, Math.round(duration * fps));
   const total = totalFrames + 1;
@@ -180,26 +191,42 @@ export async function exportPostVideo(
   encoder.configure(config);
 
   const frameDuration = 1_000_000 / fps;
+  const xfade = loop ? Math.min(LOOP_XFADE, duration * 0.12) : 0;
+  const gl = renderer;
+  const glc = glCanvas;
+  const paintShader =
+    gl && glc && bg.type === "shader"
+      ? (time: number, alpha: number) => {
+          gl.render(bg.shader, w, h, time, bg.seed, slide, slideCount(post));
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(glc, 0, 0, w, h);
+          ctx.globalAlpha = 1;
+        }
+      : null;
 
   try {
     for (let i = 0; i < totalFrames; i++) {
       if (encodeError) throw encodeError;
       const t = i / fps;
 
-      if (renderer && glCanvas && bg.type === "shader") {
-        renderer.render(bg.shader, w, h, SHADER_T0 + t, bg.seed, slide, slideCount(post));
-        ctx.drawImage(glCanvas, 0, 0, w, h);
+      if (paintShader) {
+        paintShader(SHADER_T0 + t, 1);
+        if (xfade > 0 && t > duration - xfade) {
+          paintShader(SHADER_T0 + t - duration, (t - (duration - xfade)) / xfade);
+        }
       } else if (stillBg) {
         ctx.drawImage(stillBg, 0, 0, w, h);
       }
 
       // `bgHref: null` leaves the background transparent so the layer painted
-      // above shows through; `timeSec` freezes the loop at this exact frame.
+      // above shows through; `timeSec` freezes the loop at this exact frame, and
+      // `loopSec` retimes every cycle to divide evenly into the clip.
       const svg = renderPostSVG(post, {
         format,
         slide,
         bgHref: null,
         timeSec: t,
+        loopSec: loop ? duration : undefined,
         fontCss,
         forExport: true,
       });

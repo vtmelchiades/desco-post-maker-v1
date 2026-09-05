@@ -181,7 +181,7 @@ export default function PostModal({
       <div className="modal__panel">
         <header className="modal__head">
           <div className="flex items-center gap-4">
-            <span className="mono-label accent">N°{pad2(post.id)} / 50</span>
+            <span className="mono-label accent">N°{pad2(post.id)}</span>
             <span className="mono-label dim">{pillar.code} · {pillar.label}</span>
             <span className="chip chip--accent">{arch.label}</span>
           </div>

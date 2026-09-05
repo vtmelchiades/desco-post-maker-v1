@@ -86,6 +86,14 @@ export const PILLARS: Pillar[] = [
     short: "Interior",
     description: "Bauru por escolha. DescoCreators. Filosofia operacional.",
   },
+  {
+    id: "decada",
+    code: "08",
+    label: "10 Anos · Marca Quem Pode",
+    short: "10 Anos",
+    description:
+      "Campanha de década. Superioridade construída, elite criativa — dez anos marcando território, não entregando jobs.",
+  },
 ];
 
 export const ARCHETYPES: ArchetypeInfo[] = [

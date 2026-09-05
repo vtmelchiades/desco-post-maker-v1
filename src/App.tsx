@@ -4,7 +4,7 @@ import ThreeBackground from "./components/ThreeBackground";
 import PostCard from "./components/PostCard";
 import PostModal from "./components/PostModal";
 import { ARCHETYPES, BRAND, PILLARS } from "./data/brand";
-import { postsData } from "./data/posts";
+import { POST_COUNT, postsData } from "./data/posts";
 import type { Archetype, Format, PillarId } from "./data/types";
 import { normalizeUpload } from "./engine/assets";
 import { exportMasterZip, exportPillarZip, type ExportProgress, type ExportSettings, type Overrides } from "./engine/exporter";
@@ -156,13 +156,13 @@ export default function App() {
           <span className="mono-label dim">/ Post Engine</span>
         </div>
         <div className="topbar__center mono-label dim">
-          <span>50 posts</span>
+          <span>{POST_COUNT} posts</span>
           <span>·</span>
-          <span>7 pilares</span>
+          <span>{PILLARS.length} pilares</span>
           <span>·</span>
-          <span>6 arquétipos</span>
+          <span>{ARCHETYPES.length} arquétipos</span>
           <span>·</span>
-          <span>{shaderCount} WebGL / {50 - shaderCount} foto</span>
+          <span>{shaderCount} WebGL / {POST_COUNT - shaderCount} foto</span>
         </div>
         <div className="topbar__actions">
           <div className="seg">
@@ -185,7 +185,7 @@ export default function App() {
             Motion
           </button>
           <button className="btn btn--accent" disabled={busy} onClick={() => runExport(() => exportMasterZip(postsData, settings))}>
-            <Package size={13} /> Master ZIP · 50 posts
+            <Package size={13} /> Master ZIP · {POST_COUNT} posts
           </button>
         </div>
       </header>
@@ -197,7 +197,7 @@ export default function App() {
             Marcas não precisam de mais barulho. <em>Precisam de um ponto de vista.</em>
           </h1>
           <p className="hero__lead">
-            Sistema generativo de 50 publicações calibrado na identidade da Desco — {BRAND.tagline.toLowerCase()}, {BRAND.city}, {BRAND.est}.
+            Sistema generativo de {POST_COUNT} publicações calibrado na identidade da Desco — {BRAND.tagline.toLowerCase()}, {BRAND.city}, {BRAND.est}.
             Clique em qualquer post para editar, trocar o fundo por upload, navegar lâminas e exportar SVG editável no Illustrator, PNG e ZIP.
           </p>
         </div>
@@ -249,7 +249,7 @@ export default function App() {
           </span>
           <div className="filters__chips">
             <button className={`chipbtn ${pillar === "all" ? "is-on" : ""}`} onClick={() => setPillar("all")}>
-              Todos <b>50</b>
+              Todos <b>{POST_COUNT}</b>
             </button>
             {PILLARS.map((p) => (
               <button key={p.id} className={`chipbtn ${pillar === p.id ? "is-on" : ""}`} onClick={() => setPillar(p.id)} title={p.description}>
@@ -282,7 +282,7 @@ export default function App() {
               <Zap size={11} /> {shaderCount} shader
             </span>
             <span className="inline-flex items-center gap-1">
-              <ImageIcon size={11} /> {50 - shaderCount} foto
+              <ImageIcon size={11} /> {POST_COUNT - shaderCount} foto
             </span>
           </span>
         </div>

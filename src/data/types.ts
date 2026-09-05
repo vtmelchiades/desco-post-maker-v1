@@ -5,7 +5,8 @@ export type PillarId =
   | "campanha"
   | "conteudo"
   | "casos"
-  | "interior";
+  | "interior"
+  | "decada";
 
 export type Archetype =
   | "brutalist"
@@ -60,6 +61,12 @@ export interface Post {
   stat?: Stat;
   slides?: Slide[];
   meta: { client: string; discipline: string; year: string };
+  /**
+   * Show the city/coordinates/handle colophon. Left unset it falls to a default
+   * that puts it on a minority of posts, so it stays a signature and not a
+   * template footer.
+   */
+  colophon?: boolean;
   caption: string;
   imagePrompt: string;
   background: Background;

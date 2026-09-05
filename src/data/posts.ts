@@ -15,6 +15,9 @@ const shader = (s: ShaderId, seed: number): Background => ({
 
 const TAGS_BASE = "#Desco #Bauru #InteriorPaulista #Branding #Estratégia #DesignBrasileiro";
 
+/** Campanha de década — soma-se à base em todo post do pilar "decada". */
+const TAGS_10 = `${TAGS_BASE} #Desco10Anos #MarcaQuemPode #10Anos #EliteCriativa`;
+
 export const postsData: Post[] = [
   // ───────────────────────────── 01 · MANIFESTO ─────────────────────────────
   {
@@ -1416,6 +1419,248 @@ ${TAGS_BASE} #ContatoDireto #SemFunil #Escreva #Motion`,
     imagePrompt:
       "Glowing acid-green wireframe grid bending toward a vanishing point on pure black, subtle bloom and chromatic aberration, generative technical art, precise and minimal, --ar 4:5 --style raw --v 6",
     background: shader("grid", 150),
+  },
+
+  // ──────────────── 08 · 10 ANOS — CAMPANHA "MARCA QUEM PODE" ───────────────
+  // Conceito: superioridade construída, elite criativa. A campanha não celebra
+  // tempo de casa — reivindica território. Assinatura: lockup DESC/OANOS.
+  {
+    id: 51,
+    slug: "a-primeira-marca",
+    pillar: "decada",
+    archetype: "brutalist",
+    theme: "dark",
+    tag: "10 ANOS / A ORIGEM",
+    headline: "Antes do alfabeto, uma mão na *pedra*.",
+    subheadline: "O primeiro gesto de autoria não provou força. Provou existência.",
+    meta: { client: "Desco", discipline: "Campanha 10 Anos", year: "2015—2025" },
+    caption: `Há 40 mil anos alguém encostou a mão numa parede e soprou pigmento em volta.
+
+Não havia alfabeto. Não havia comércio. Não havia briefing.
+
+Havia uma vontade só: registrar que aquilo existiu.
+
+É a definição mais antiga de marca que a humanidade produziu — e continua sendo a melhor. Marca não é o que você diz sobre si enquanto está na sala. É o que fica depois que você sai dela.
+
+Dez anos de Desco não são dez anos de entregas. São dez anos perseguindo a única pergunta que interessa: o que resta disso daqui a uma década?
+
+Marca quem pode.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Prehistoric negative handprint stencil on a rough limestone cave wall, ochre pigment blown around a human hand, deep pitted mineral texture, raking light from a single low source carving every crater in the rock, absolute darkness swallowing the edges, archaeological documentary photography, shot on Phase One IQ4 with 80mm at f/11, extreme micro-detail in the stone, near-monochrome with warm ochre as the only chroma, --ar 4:5 --style raw --v 6",
+    background: photo(38074977, "mono", "Pexels"),
+  },
+  {
+    id: 52,
+    slug: "marca-quem-pode",
+    pillar: "decada",
+    archetype: "kinetic",
+    theme: "dark",
+    tag: "10 ANOS / TAGLINE",
+    headline: "*Marca* quem pode.",
+    subheadline: "Outros tentam. Nós fazemos.",
+    meta: { client: "Desco", discipline: "Campanha 10 Anos", year: "2025" },
+    colophon: true,
+    caption: `Marca quem pode.
+
+Três palavras que não são um slogan — são um critério.
+
+Marcar exige poder: repertório para enxergar o que ninguém viu, competência para executar sem diluir, e autoridade para sustentar a decisão quando ela ficar desconfortável. Falta uma dessas três e o trabalho vira barulho bem-produzido.
+
+Em dez anos a Desco não construiu um portfólio. Construiu um padrão — e o padrão é o que separa quem tenta de quem faz.
+
+O cliente que está com a gente já entendeu. Quem não está, ainda procura entender.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Abstract kinetic field of acid-green light trails over near-black, long-exposure motion of a single luminous line inscribing itself into darkness, volumetric haze, high contrast, editorial motion-design still, no text, --ar 4:5 --style raw --v 6",
+    background: shader("liquid", 210),
+  },
+  {
+    id: 53,
+    slug: "o-gesto-de-multiplicar",
+    pillar: "decada",
+    archetype: "split",
+    theme: "dark",
+    tag: "10 ANOS / MULTIPLICAR",
+    headline: "Gutenberg não imprimiu *páginas*.",
+    subheadline: "Imprimiu a ideia de que uma ideia pode não morrer junto com quem a teve.",
+    meta: { client: "Mainz", discipline: "Tipografia móvel", year: "1440" },
+    caption: `O primeiro gesto de multiplicar.
+
+Antes de Gutenberg, saber era propriedade. Ficava trancado em mosteiro, copiado à mão por um monge de cada vez, acessível a quem já tinha poder.
+
+A prensa não acelerou a cópia. Ela quebrou o monopólio.
+
+Aqui nasceu a ideia de espalhar saber — não para guardar segredo, mas para criar liberdade.
+
+Toda marca que importa faz a mesma coisa em escala menor: pega algo que estava restrito a poucos e torna inevitável para muitos. É esse o trabalho.
+
+Marca quem pode.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Overhead shot of a wooden letterpress type case, hundreds of lead sorts in compartments, oxidised metal and ink residue, single hard raking light from the left, deep shadows in every cell, tactile industrial texture, editorial still-life photography, shot on Hasselblad X2D 90mm at f/8, monochrome with heavy micro-contrast, Tri-X grain, --ar 4:5 --style raw --v 6",
+    background: photo(37406186, "mono", "Pexels"),
+  },
+  {
+    id: 54,
+    slug: "arte-e-ciencia",
+    pillar: "decada",
+    archetype: "minimal",
+    theme: "paper",
+    tag: "10 ANOS / ASSINATURA",
+    headline: "Arte e ciência numa só *assinatura*.",
+    subheadline: "Da Vinci não escolheu um lado. Por isso ainda estamos olhando.",
+    meta: { client: "Leonardo da Vinci", discipline: "Método", year: "1490" },
+    caption: `Da Vinci fundiu arte e ciência numa assinatura só.
+
+O caderno dele não separa o belo do exato. A proporção do corpo está na mesma página que o estudo de máquina de voar, escrita ao contrário, para quem tivesse o trabalho de decifrar.
+
+Quinhentos anos depois, o mercado ainda insiste em separar: criação de um lado, dado do outro. Time de marca aqui, time de performance ali.
+
+A Desco existe do lado que não escolhe. Estratégia como argumento, design como evidência — e a recusa de tratar rigor e beleza como se fossem inimigos.
+
+Quem separa, entrega peça. Quem funde, marca.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Aged Renaissance manuscript page, sepia iron-gall ink anatomical proportion study with dense mirror-written marginalia, foxed and stained rag paper, visible fibre texture and deckled edge, flat museum archival lighting, top-down copy-stand photography, ultra-high resolution, warm neutral palette on off-white, --ar 4:5 --style raw --v 6",
+    background: photo(12414385, "color", "Pexels"),
+  },
+  {
+    id: 55,
+    slug: "dez-anos-zero-jobs",
+    pillar: "decada",
+    archetype: "stat",
+    theme: "dark",
+    tag: "10 ANOS / TERRITÓRIO",
+    headline: "Dez anos. *Nenhum* job entregue.",
+    subheadline: "Território marcado é outra métrica.",
+    stat: { value: "10", label: "anos marcando território — não entregando jobs" },
+    meta: { client: "Desco", discipline: "Campanha 10 Anos", year: "2015—2025" },
+    colophon: false,
+    caption: `Dez anos. Nenhum job entregue.
+
+Não é provocação — é vocabulário.
+
+"Job" é uma tarefa que começa num briefing e termina num arquivo. Ela é aprovada, publicada e esquecida dentro do mesmo trimestre.
+
+Território é o que sobra: a posição que a marca passou a ocupar na cabeça de alguém e da qual não sai mais. Território não se entrega. Se conquista, e depois se defende.
+
+A diferença entre as duas coisas não aparece no orçamento. Aparece daqui a cinco anos.
+
+Marca quem pode.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Precision technical grid of thin luminous lines over absolute black, faint acid-green measurement crosses at the intersections, scientific instrument aesthetic, subtle atmospheric haze, no text, --ar 4:5 --style raw --v 6",
+    background: shader("grid", 205),
+  },
+  {
+    id: 56,
+    slug: "a-marca-na-lua",
+    pillar: "decada",
+    archetype: "brutalist",
+    theme: "dark",
+    tag: "10 ANOS / PERMANÊNCIA",
+    headline: "Lá não existe vento para *apagar* a pegada.",
+    subheadline: "1969. A marca continua exatamente onde foi deixada.",
+    meta: { client: "Mar da Tranquilidade", discipline: "Permanência", year: "1969" },
+    caption: `A pegada mais famosa da história não foi protegida por ninguém.
+
+Ela permanece porque o lugar onde foi deixada não tem vento, não tem chuva e não tem quem a apague.
+
+Aqui embaixo é o contrário: tudo é erosão. Algoritmo muda, formato muda, o concorrente copia sua campanha em duas semanas.
+
+Por isso a marca não pode depender da superfície. Ela precisa ser funda o suficiente para que o tempo passe por cima sem levar junto.
+
+Marcar raso é fácil e dura um trimestre. Marcar fundo é caro, demorado, desconfortável — e é a única coisa que continua lá quando você volta.
+
+Marca quem pode.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Lunar surface in extreme close-up, cratered regolith raked by hard low sunlight, absolute black sky with no stars, a single crisp boot print pressed into the dust at the lower third, no atmosphere haze whatsoever, NASA Hasselblad documentary aesthetic, pure monochrome, deep blacks and blown highlights, --ar 4:5 --style raw --v 6",
+    background: photo(29719662, "mono", "Pexels"),
+  },
+  {
+    id: 57,
+    slug: "quem-nao-segue-cria-caminho",
+    pillar: "decada",
+    archetype: "carousel",
+    theme: "dark",
+    tag: "10 ANOS / MANIFESTO",
+    headline: "Quem não segue — *cria caminho*.",
+    subheadline: "A linha do tempo de quem marcou.",
+    meta: { client: "Desco", discipline: "Manifesto", year: "2025" },
+    slides: [
+      {
+        kicker: "SÉC. IV a.C. — XVI",
+        headline: "Aristóteles marcou o *pensamento*.",
+        body: "Galileu virou os olhos do mundo para cima. Da Vinci fundiu arte e ciência numa assinatura só. Nenhum dos três pediu autorização.",
+      },
+      {
+        kicker: "SÉC. XV — XX",
+        headline: "Gutenberg imprimiu *palavras*.",
+        body: "Edison acendeu ideias. Tesla eletrizou o futuro. Dumont voou — e nunca mais voltamos ao chão.",
+      },
+      {
+        kicker: "AGORA",
+        headline: "Apple reinventou o *toque*.",
+        body: "Nike fez do movimento um estilo de vida. Google organizou o caos. Pix virou verbo — a prova de que marcar é virar linguagem.",
+      },
+      {
+        kicker: "DEZ ANOS",
+        headline: "*Marca* quem pode.",
+        body: "Quem rompe padrões. Quem não espera a permissão do tempo. Quem não segue — cria caminho.",
+      },
+    ],
+    caption: `Marca quem pode.
+
+Repare que a lista não tem uma única pessoa que estava seguindo alguém.
+
+Aristóteles não organizou o pensamento porque havia demanda. Gutenberg não tinha pesquisa de mercado. Dumont não esperou a aviação existir para voar.
+
+O que eles têm em comum não é genialidade — é a recusa de esperar permissão. Marcar é sempre um ato de antecipação, e antecipar é sempre desconfortável enquanto ninguém entendeu ainda.
+
+Mais do que um slogan, é um chamado. Porque no fim o tempo só leva o que é raso. O que é profundo, permanece.
+
+E permanecer é para quem marca.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Vast field of slow aurora-like light folds over near-black, deep green and cold white gradients, long-exposure atmospheric abstraction, cinematic and quiet, no text, no horizon, --ar 4:5 --style raw --v 6",
+    background: shader("aurora", 219),
+  },
+  {
+    id: 58,
+    slug: "o-que-permanece",
+    pillar: "decada",
+    archetype: "minimal",
+    theme: "paper",
+    tag: "10 ANOS / O QUE FICA",
+    headline: "O tempo só leva o que é *raso*.",
+    subheadline: "O que é profundo, permanece. E permanecer é para quem marca.",
+    meta: { client: "Desco", discipline: "Campanha 10 Anos", year: "2015—2025" },
+    colophon: true,
+    caption: `O tempo é o único cliente que nunca aprova por gentileza.
+
+Ele não olha o deck, não considera o prazo apertado e não tem simpatia pela equipe. Ele só faz uma pergunta, e faz uma vez só: isso é raso ou é fundo?
+
+O que é raso, ele leva. Todo o resto continua.
+
+Dez anos depois, a Desco não pede que ninguém acredite na gente. Pede que olhe o que continuou de pé — as marcas que ainda ocupam a posição que a gente ajudou a construir, com a mesma clareza do primeiro dia.
+
+Permanecer é para quem marca.
+
+Marca quem pode.
+
+${TAGS_10}`,
+    imagePrompt:
+      "Macro photograph of a letterpress type specimen sheet, heavy black serif weights printed on cream stock, visible ink bite and paper tooth, shallow depth of field falling off to the right, flat directional studio light, editorial typographic still-life, monochrome, --ar 4:5 --style raw --v 6",
+    background: photo(5045981, "mono", "Pexels"),
   },
 ];
 

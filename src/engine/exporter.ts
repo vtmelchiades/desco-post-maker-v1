@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { FORMATS, photoUrl, pillarById, PILLARS } from "../data/brand";
 import type { Format, Post } from "../data/types";
+import { POST_COUNT } from "../data/posts";
 import { embeddedFontCss, loadImage, toDataURL } from "./assets";
 import { shaderSnapshot } from "./shaders";
 import { renderPostSVG, slideCount } from "./svg";
@@ -92,7 +93,7 @@ function fileBase(post: Post, format: Format, slide: number) {
 
 export function captionFile(post: Post) {
   const pillar = pillarById(post.pillar);
-  return `DESCO — POST ${pad2(post.id)} / 50
+  return `DESCO — POST ${pad2(post.id)}
 Pilar: ${pillar.code} · ${pillar.label}
 Arquétipo: ${post.archetype}
 Formatos: Feed 1050×1350 · Story 1050×1920${slideCount(post) > 1 ? ` · Carrossel ${slideCount(post)} lâminas` : ""}
@@ -198,11 +199,11 @@ export async function exportMasterZip(posts: Post[], settings: ExportSettings) {
   }
   zip.file(
     "README.txt",
-    `DESCO — MASTER PACK · 50 POSTS\nLaboratório de estratégia, design e ruptura visual — Bauru/SP\n\nEstrutura:\n  /{pilar}/{post}/feed/post_feed_1050x1350.png|svg\n  /{pilar}/{post}/story/post_story_1050x1920.png|svg\n  /{pilar}/{post}/legenda.txt\n  /{pilar}/{post}/image_prompt.txt\n\nSVGs preservam texto e vetores editáveis no Adobe Illustrator; fundos fotográficos/shader estão embutidos como raster.\nEscala PNG: ${settings.scale}x`
+    `DESCO — MASTER PACK · ${POST_COUNT} POSTS\nLaboratório de estratégia, design e ruptura visual — Bauru/SP\n\nEstrutura:\n  /{pilar}/{post}/feed/post_feed_1050x1350.png|svg\n  /{pilar}/{post}/story/post_story_1050x1920.png|svg\n  /{pilar}/{post}/legenda.txt\n  /{pilar}/{post}/image_prompt.txt\n\nSVGs preservam texto e vetores editáveis no Adobe Illustrator; fundos fotográficos/shader estão embutidos como raster.\nEscala PNG: ${settings.scale}x`
   );
   prog.tick("Compactando…");
   const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
-  saveAs(blob, `desco_master_50_posts.zip`);
+  saveAs(blob, `desco_master_${POST_COUNT}_posts.zip`);
   prog.finish("Concluído");
 }
 
