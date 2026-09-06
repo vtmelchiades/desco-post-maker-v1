@@ -94,6 +94,14 @@ export const PILLARS: Pillar[] = [
     description:
       "Campanha de década. Superioridade construída, elite criativa — dez anos marcando território, não entregando jobs.",
   },
+  {
+    id: "laboratorio",
+    code: "09",
+    label: "Laboratório & Tecnologia Criativa",
+    short: "Laboratório",
+    description:
+      "Raymarching, campos de ruído, retículas na GPU. O lado do estúdio onde a técnica é argumento — não enfeite.",
+  },
 ];
 
 export const ARCHETYPES: ArchetypeInfo[] = [

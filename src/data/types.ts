@@ -6,7 +6,8 @@ export type PillarId =
   | "conteudo"
   | "casos"
   | "interior"
-  | "decada";
+  | "decada"
+  | "laboratorio";
 
 export type Archetype =
   | "brutalist"
@@ -16,9 +17,25 @@ export type Archetype =
   | "minimal"
   | "carousel";
 
-export type ShaderId = "liquid" | "mesh" | "grid" | "aurora";
+export type ShaderId =
+  | "liquid"
+  | "mesh"
+  | "grid"
+  | "aurora"
+  | "chrome"
+  | "inflate"
+  | "warp"
+  | "curl"
+  | "dither"
+  | "halftone";
 
 export type Treatment = "mono" | "duotone" | "color";
+
+/**
+ * `liquid` — turbulence-driven displacement, type reads as poured glass.
+ * `frost`  — coarser displacement plus a blur bleed, frosted-glass refraction.
+ */
+export type TypeEffect = "liquid" | "frost";
 
 export type Format = "feed" | "story";
 
@@ -67,6 +84,12 @@ export interface Post {
    * template footer.
    */
   colophon?: boolean;
+  /**
+   * Optional SVG filter applied to the headline group. Unlike a raster effect,
+   * this leaves the `<text>` elements intact — the type stays live and editable
+   * in the exported SVG, and the distortion travels with it.
+   */
+  effect?: TypeEffect;
   caption: string;
   imagePrompt: string;
   background: Background;

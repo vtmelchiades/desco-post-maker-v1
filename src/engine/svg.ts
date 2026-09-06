@@ -1,5 +1,5 @@
 import { BRAND, FORMATS, pillarById } from "../data/brand";
-import type { Format, Post } from "../data/types";
+import type { Format, Post, TypeEffect } from "../data/types";
 import { LOGO_10_ANOS, LOGO_DESCO, type LogoArt } from "../data/logos";
 import { postsData } from "../data/posts";
 
@@ -290,6 +290,33 @@ function filters(uid: string) {
 <linearGradient id="${uid}-fadeB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#080808" stop-opacity="0"/><stop offset="0.45" stop-color="#080808" stop-opacity="0.35"/><stop offset="1" stop-color="#080808" stop-opacity="0.94"/></linearGradient>
 <linearGradient id="${uid}-fadeT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#080808" stop-opacity="0.7"/><stop offset="1" stop-color="#080808" stop-opacity="0"/></linearGradient>
 <linearGradient id="${uid}-fadeR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#080808" stop-opacity="0"/><stop offset="1" stop-color="#080808" stop-opacity="0.85"/></linearGradient>`;
+}
+
+/**
+ * Turbulence-driven displacement for live type.
+ *
+ * The distortion is animated by sliding the noise field along a circle rather
+ * than by stepping `seed`, which would jump: a circular offset returns to its
+ * own start, so the effect loops exactly like everything else. The filter region
+ * is deliberately oversized — `feOffset` leaves the vacated strip undefined, and
+ * an undefined displacement map would displace by half the scale and band the
+ * edges. Growing the region pushes that strip outside the artwork.
+ */
+function typeFilter(uid: string, kind: TypeEffect, phase: number) {
+  const r = kind === "frost" ? 34 : 22;
+  const dx = (r * Math.cos(phase * Math.PI * 2)).toFixed(2);
+  const dy = (r * Math.sin(phase * Math.PI * 2)).toFixed(2);
+  // Frequency is set against the cap height of the headline, not the canvas: too
+  // low and the field is flat across a letter, so the type merely shifts.
+  const freq = kind === "frost" ? "0.024 0.042" : "0.017 0.030";
+  const octaves = kind === "frost" ? 3 : 2;
+  const scale = kind === "frost" ? 18 : 14;
+  const bleed = kind === "frost" ? '<feGaussianBlur stdDeviation="0.7" result="soft"/>' : "";
+  return `<filter id="${uid}-type" x="-30%" y="-40%" width="160%" height="180%" color-interpolation-filters="sRGB" filterUnits="objectBoundingBox">
+<feTurbulence type="fractalNoise" baseFrequency="${freq}" numOctaves="${octaves}" seed="7" result="n"/>
+<feOffset in="n" dx="${dx}" dy="${dy}" result="nm"/>
+<feDisplacementMap in="SourceGraphic" in2="nm" scale="${scale}" xChannelSelector="R" yChannelSelector="G"/>${bleed}
+</filter>`;
 }
 
 function imageEl(c: Ctx, href: string, x: number, y: number, w: number, h: number, filter?: string) {
@@ -924,11 +951,19 @@ export function renderPostSVG(post: Post, opts: RenderOptions): string {
       body = carousel(c);
       break;
   }
+  // Every archetype wraps its headline in `<g id="TYPE">`, so the effect can be
+  // attached in one place instead of threaded through six layout functions.
+  if (post.effect) {
+    body = body.replace('<g id="TYPE">', `<g id="TYPE" filter="url(#${uid}-type)">`);
+  }
+  const effectDef = post.effect
+    ? typeFilter(uid, post.effect, cyclePhase(c.time ?? 0, 9, c.loop))
+    : "";
   const fontStyle = opts.fontCss ? `<style type="text/css"><![CDATA[${opts.fontCss}]]></style>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" text-rendering="geometricPrecision" data-post="${post.id}" data-format="${fmt}" data-slide="${slide}">
 <title>Desco — Post ${pad2(post.id)} — ${esc(plain(post.headline))}</title>
 <desc>${esc(post.tag)} · ${fmt === "feed" ? "1050×1350" : "1050×1920"} · ${post.archetype}</desc>
-<defs>${filters(uid)}</defs>${fontStyle}
+<defs>${filters(uid)}${effectDef}</defs>${fontStyle}
 ${body}
 </svg>`;
 }

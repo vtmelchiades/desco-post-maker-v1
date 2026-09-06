@@ -15,6 +15,9 @@ const shader = (s: ShaderId, seed: number): Background => ({
 
 const TAGS_BASE = "#Desco #Bauru #InteriorPaulista #Branding #Estratégia #DesignBrasileiro";
 
+/** Laboratório — pauta técnica, público de criação e produção. */
+const TAGS_LAB = `${TAGS_BASE} #Laboratório #WebGL #DesignGenerativo #Shaders #CreativeCoding`;
+
 /** Campanha de década — soma-se à base em todo post do pilar "decada". */
 const TAGS_10 = `${TAGS_BASE} #Desco10Anos #MarcaQuemPode #10Anos #EliteCriativa`;
 
@@ -1661,6 +1664,392 @@ ${TAGS_10}`,
     imagePrompt:
       "Macro photograph of a letterpress type specimen sheet, heavy black serif weights printed on cream stock, visible ink bite and paper tooth, shallow depth of field falling off to the right, flat directional studio light, editorial typographic still-life, monochrome, --ar 4:5 --style raw --v 6",
     background: photo(5045981, "mono", "Pexels"),
+  },
+
+  // ─────────────── 09 · LABORATÓRIO — TÉCNICA COMO ARGUMENTO ────────────────
+  {
+    id: 59,
+    slug: "codigo-como-material",
+    pillar: "laboratorio",
+    archetype: "brutalist",
+    theme: "dark",
+    tag: "LABORATÓRIO / MATÉRIA",
+    headline: "Código também é *matéria* de design.",
+    subheadline: "Não é a ferramenta que desenha. É quem escreve a regra.",
+    meta: { client: "Desco", discipline: "Design generativo", year: "2025" },
+    effect: "liquid",
+    caption: `Existe uma diferença entre usar um filtro e escrever um.
+
+O filtro pronto entrega o mesmo resultado para todo mundo — é por isso que dá para reconhecer, no feed, qual preset a agência comprou.
+
+Quando a superfície é gerada por uma regra que a gente escreveu, ela não existia antes e não vai existir de novo igual. O metal desta imagem não é foto nem render de modelo: é uma equação de distância resolvida pixel a pixel, sessenta vezes por segundo.
+
+Isso não é firula técnica. É a diferença entre uma marca que parece as outras e uma que não tem com o que ser comparada.
+
+${TAGS_LAB}`,
+    imagePrompt:
+      "Liquid mercury blob suspended in a black studio void, extreme specular reflections of a single overhead strip light, surface tension ripples across the chrome, one acid-green bounce light from below left, product photography of an impossible object, ultra sharp, --ar 4:5 --style raw --v 6",
+    background: shader("chrome", 301),
+  },
+  {
+    id: 60,
+    slug: "zero-poligonos",
+    pillar: "laboratorio",
+    archetype: "stat",
+    theme: "dark",
+    tag: "LABORATÓRIO / MÉTODO",
+    headline: "*Zero* polígonos nesta imagem.",
+    subheadline: "A forma não foi modelada. Foi resolvida.",
+    stat: { value: "0", label: "vértices — a superfície é uma função de distância, não uma malha" },
+    meta: { client: "Desco", discipline: "Raymarching / SDF", year: "2025" },
+    colophon: false,
+    caption: `Zero polígonos.
+
+O jeito normal de fazer 3D é construir uma casca de triângulos e iluminá-la. Aqui não existe casca. Para cada pixel da tela, o programa pergunta a uma fórmula: "a que distância estou da superfície?" — e caminha nessa direção até encostar.
+
+O resultado: formas que se fundem, escorrem e respiram sem nenhuma geometria para quebrar. Não dá para fazer isso modelando.
+
+Trazemos isso para trabalho de marca pela mesma razão de sempre: porque a técnica que ninguém usa é o que mantém o resultado fora do alcance da comparação.
+
+${TAGS_LAB}`,
+    imagePrompt:
+      "Ordered dither pattern of an organic field, 1-bit aesthetic, dense Bayer matrix texture in near-black and bone white with a single acid-green threshold band, early-computer print aesthetic, high contrast, --ar 4:5 --style raw --v 6",
+    background: shader("dither", 309),
+  },
+  {
+    id: 61,
+    slug: "distorcao-que-continua-editavel",
+    pillar: "laboratorio",
+    archetype: "minimal",
+    theme: "dark",
+    tag: "LABORATÓRIO / TIPOGRAFIA",
+    headline: "Distorcida e ainda *editável*.",
+    subheadline: "O texto desta peça continua sendo texto. Não virou pixel.",
+    meta: { client: "Desco", discipline: "SVG / feDisplacementMap", year: "2025" },
+    effect: "frost",
+    caption: `Todo efeito bonito de tipografia costuma cobrar o mesmo preço: no fim, o texto virou imagem. Trocar uma palavra significa refazer tudo.
+
+Aqui a distorção é um filtro vetorial aplicado sobre letras que continuam sendo letras. Abra o arquivo no Illustrator, corrija a vírgula, mude o nome do cliente — a ondulação acompanha.
+
+É o tipo de decisão que ninguém percebe olhando, e que todo mundo sente quando chega o pedido de alteração na véspera.
+
+Rigor não é o oposto de ousadia. É o que permite ousar duas vezes.
+
+${TAGS_LAB}`,
+    imagePrompt:
+      "Domain-warped topographic field, dark olive contour lines flowing like marbled paper, thin acid-green isolines picking out the ridges, cartographic and quiet, no text, --ar 4:5 --style raw --v 6",
+    background: shader("warp", 314),
+  },
+  {
+    id: 62,
+    slug: "reticula-nao-e-nostalgia",
+    pillar: "laboratorio",
+    archetype: "split",
+    theme: "dark",
+    tag: "LABORATÓRIO / RETÍCULA",
+    headline: "Retícula não é *nostalgia*.",
+    subheadline: "É a forma mais honesta de admitir que toda imagem tem um limite.",
+    meta: { client: "Desco", discipline: "Halftone / Dither", year: "2025" },
+    caption: `A retícula nasceu de uma limitação: a tinta não sabe fazer cinza, só sabe estar ou não estar. Resolveram com pontos de tamanhos diferentes.
+
+Hoje ninguém precisa mais dela — e é justamente por isso que ela virou escolha em vez de imposição.
+
+Usar ponto e dithering em 2025 não é saudade de jornal. É assumir a materialidade da imagem em vez de fingir que ela é uma janela perfeita. A textura vira argumento.
+
+A regra vale fora da tela também: marca que esconde os próprios limites parece publicidade. Marca que assume vira ponto de vista.
+
+${TAGS_LAB}`,
+    imagePrompt:
+      "Rotated halftone dot screen at 15 and 75 degrees, ink dots of varying radius over a dark plate, a second acid-green screen appearing only in the brightest zones, offset-print texture, macro detail, --ar 4:5 --style raw --v 6",
+    background: shader("halftone", 322),
+  },
+  {
+    id: 63,
+    slug: "acaso-com-gramatica",
+    pillar: "laboratorio",
+    archetype: "brutalist",
+    theme: "dark",
+    tag: "LABORATÓRIO / RUÍDO",
+    headline: "O acaso também tem *gramática*.",
+    subheadline: "Ruído sem regra é sujeira. Com regra, vira assinatura.",
+    meta: { client: "Desco", discipline: "Curl noise / FBM", year: "2025" },
+    caption: `Todo mundo sabe pedir "algo mais orgânico". Poucos sabem que orgânico tem fórmula.
+
+Estas manchas não foram pintadas: o ponto de cada pixel foi arrastado para trás ao longo de um campo de rotação — o mesmo princípio que faz tinta se espalhar na água sem se dissolver.
+
+O acaso entra, mas dentro de uma gramática. É por isso que o resultado parece natureza e não parece bagunça.
+
+Criatividade sem sistema é sorte. E sorte não escala para uma marca inteira.
+
+${TAGS_LAB}`,
+    imagePrompt:
+      "Ink dispersing in water, divergence-free swirls, dark olive and near-black marbling with fine filament detail, long exposure macro, single acid-green highlight at the densest fold, --ar 4:5 --style raw --v 6",
+    background: shader("curl", 330),
+  },
+  {
+    id: 64,
+    slug: "loop-que-nao-tem-emenda",
+    pillar: "laboratorio",
+    archetype: "kinetic",
+    theme: "dark",
+    tag: "LABORATÓRIO / LOOP",
+    headline: "Um loop bom é o que você *não* percebe.",
+    subheadline: "Se dá para ver onde reinicia, o trabalho parou cedo demais.",
+    meta: { client: "Desco", discipline: "Motion / WebCodecs", year: "2025" },
+    caption: `Todo Reel que roda em loop tem um ponto onde o último quadro encosta no primeiro. Quase sempre dá para ver: um solavanco, um texto que salta, um fundo que pisca.
+
+Some quando cada animação da peça completa um número inteiro de voltas dentro da duração do vídeo. Não é ajuste no olho — é aritmética, e dá para medir.
+
+Neste post, a diferença entre o último quadro e o primeiro é menor que a diferença entre dois quadros vizinhos quaisquer. Ou seja: a emenda é mais suave que o próprio movimento.
+
+Ninguém vai reparar. É exatamente esse o objetivo.
+
+${TAGS_LAB}`,
+    imagePrompt:
+      "Inflated Y2K balloon form in glossy dark plastic, a fat rounded torus crossed by a swollen bar, one hot specular highlight, acid-green rim light, product render on a black void, --ar 4:5 --style raw --v 6",
+    background: shader("inflate", 338),
+  },
+
+  // ───────── posts adicionais nos pilares existentes, com os shaders novos ─────────
+  {
+    id: 65,
+    slug: "o-inimigo-e-o-generico",
+    pillar: "manifesto",
+    archetype: "brutalist",
+    theme: "dark",
+    tag: "MANIFESTO / RECUSA",
+    headline: "O inimigo nunca foi o feio. É o *genérico*.",
+    subheadline: "Feio incomoda. Genérico não é nem visto.",
+    meta: { client: "Desco", discipline: "Manifesto", year: "2015—" },
+    caption: `Marca ruim não é a que erra. É a que poderia ser trocada por qualquer concorrente sem ninguém notar.
+
+Troque o logo do anúncio. Se continuar fazendo sentido, você não tem uma marca — tem um setor.
+
+O genérico é confortável porque nunca é criticado. Também nunca é lembrado, defendido ou pago mais caro.
+
+A gente prefere o desconforto de uma decisão que alguém pode odiar. Pelo menos ela existe.
+
+${TAGS_BASE} #Manifesto #Posicionamento`,
+    imagePrompt:
+      "Ordered dither field, harsh 1-bit quantisation of an organic gradient, bone white and near-black with acid-green at the top threshold, brutal and graphic, --ar 4:5 --style raw --v 6",
+    background: shader("dither", 345),
+  },
+  {
+    id: 66,
+    slug: "posicionamento-nao-e-adjetivo",
+    pillar: "estrategia",
+    archetype: "stat",
+    theme: "dark",
+    tag: "ESTRATÉGIA / DIAGNÓSTICO",
+    headline: "Posicionamento não é *adjetivo*.",
+    subheadline: "Se cabe em qualquer marca do setor, não é posição — é papel de parede.",
+    stat: { value: "1", label: "frase que a marca defende — e uma que ela se recusa a dizer" },
+    meta: { client: "Desco", discipline: "Estratégia", year: "2025" },
+    caption: `"Inovadora, humana, próxima do cliente."
+
+Pegue essa frase e cole no site de qualquer concorrente. Continua verdadeira? Então não é posicionamento — é enchimento.
+
+Posição de verdade tem custo: ela exclui alguém. Diz o que a marca não é, para quem ela não serve, e o que ela se recusa a fazer mesmo quando dá dinheiro.
+
+Uma frase que a marca defende. Uma que ela se recusa a dizer. Se as duas não existirem por escrito, não existe estratégia — existe intenção.
+
+→ Escreva as duas hoje. A segunda é a difícil.
+
+${TAGS_BASE} #Posicionamento #Estratégia`,
+    imagePrompt:
+      "Topographic domain-warped terrain, dark olive ridges with thin acid contour lines, precision measurement crosses, scientific chart aesthetic, --ar 4:5 --style raw --v 6",
+    background: shader("warp", 352),
+  },
+  {
+    id: 67,
+    slug: "arquitetura-de-marca",
+    pillar: "estrategia",
+    archetype: "split",
+    theme: "dark",
+    tag: "ESTRATÉGIA / ARQUITETURA",
+    headline: "Toda marca que cresceu rápido vira um *armário bagunçado*.",
+    subheadline: "Arquitetura de marca é decidir o que fica junto, o que sai e o que ganha nome próprio.",
+    meta: { client: "Confidencial", discipline: "Arquitetura de marca", year: "2024" },
+    caption: `Começa com um produto. Vira três. Aí alguém lança um selo, o comercial pede um sub-nome, e em cinco anos o portfólio tem quatorze marcas que ninguém consegue explicar num elevador.
+
+Arquitetura de marca não é organograma bonito. É uma sequência de decisões caras: o que se funde, o que morre, o que ganha nome próprio e o que volta a ser só um atributo.
+
+O critério não é gosto. É se o cliente consegue prever o que vem dentro da caixa antes de abrir.
+
+Quando ele consegue, a marca vira atalho mental — e atalho mental é margem.
+
+${TAGS_BASE} #ArquiteturaDeMarca #Estratégia`,
+    imagePrompt:
+      "Curl-noise ink dispersion, structured swirls resolving into layered bands, near-black with olive filaments, macro long exposure, --ar 4:5 --style raw --v 6",
+    background: shader("curl", 359),
+  },
+  {
+    id: 68,
+    slug: "identidade-nao-e-logo",
+    pillar: "identidade",
+    archetype: "minimal",
+    theme: "dark",
+    tag: "IDENTIDADE / SISTEMA",
+    headline: "Identidade não é o *logo*.",
+    subheadline: "É tudo que continua reconhecível depois que você tampa o logo.",
+    meta: { client: "Desco", discipline: "Identidade & Design", year: "2025" },
+    effect: "liquid",
+    caption: `Teste rápido: cubra o logo do seu último anúncio. Ainda dá para saber de quem é?
+
+Se a resposta for não, a marca está apoiada num símbolo — e símbolo sozinho é a parte mais fácil de copiar.
+
+O que sustenta reconhecimento é o resto: a paleta que não pede desculpa, a escala tipográfica, o jeito de cortar a foto, o silêncio que a marca aceita deixar na página.
+
+Logo é assinatura. Identidade é caligrafia. A segunda é a que faz alguém reconhecer você do outro lado da rua.
+
+${TAGS_BASE} #Identidade #DesignSystem`,
+    imagePrompt:
+      "Halftone dot screen dissolving from dense to sparse across a dark field, print rosette detail, single acid accent screen, editorial macro, --ar 4:5 --style raw --v 6",
+    background: shader("halftone", 366),
+  },
+  {
+    id: 69,
+    slug: "sistema-antes-do-simbolo",
+    pillar: "identidade",
+    archetype: "carousel",
+    theme: "dark",
+    tag: "IDENTIDADE / MÉTODO",
+    headline: "Sistema antes do *símbolo*.",
+    subheadline: "A ordem em que a gente decide as coisas.",
+    meta: { client: "Desco", discipline: "Identidade & Design", year: "2025" },
+    slides: [
+      {
+        kicker: "01 — ANTES",
+        headline: "Primeiro a *recusa*.",
+        body: "O que essa marca nunca vai fazer, nunca vai dizer e nunca vai parecer. A lista de recusas é mais curta e mais útil que qualquer moodboard.",
+      },
+      {
+        kicker: "02 — ESTRUTURA",
+        headline: "Depois a *escala*.",
+        body: "Tipografia, grid, proporção, silêncio. É aqui que a identidade ganha comportamento — o que acontece quando o texto é longo, quando a foto é ruim, quando o espaço é pouco.",
+      },
+      {
+        kicker: "03 — MATÉRIA",
+        headline: "Então a *superfície*.",
+        body: "Cor, textura, movimento, som. A camada que todo mundo comenta e que só funciona se as duas anteriores estiverem de pé.",
+      },
+      {
+        kicker: "04 — POR ÚLTIMO",
+        headline: "E aí, o *símbolo*.",
+        body: "O logo é a conclusão do sistema, não o começo dele. Quando vem primeiro, o resto da identidade passa o projeto inteiro tentando justificá-lo.",
+      },
+    ],
+    caption: `Quase todo projeto de identidade começa errado: pelo logo.
+
+O símbolo é a parte que o cliente consegue imaginar antes de contratar, então é por ele que a conversa começa. E aí o resto do sistema vira justificativa retroativa de um desenho que já foi aprovado.
+
+A gente inverte. Recusa, estrutura, matéria — e o símbolo no fim, quando já se sabe o que ele precisa carregar.
+
+Dá mais trabalho para vender. Dá muito menos trabalho para manter de pé.
+
+${TAGS_BASE} #Identidade #DesignSystem #Método`,
+    imagePrompt:
+      "Curl-noise field organised into four horizontal strata, dark olive, quiet, cartographic, --ar 4:5 --style raw --v 6",
+    background: shader("curl", 373),
+  },
+  {
+    id: 70,
+    slug: "a-ideia-cabe-num-frame",
+    pillar: "campanha",
+    archetype: "brutalist",
+    theme: "dark",
+    tag: "CAMPANHA / TESTE",
+    headline: "Se a ideia não cabe num *frame*, não é ideia.",
+    subheadline: "É roteiro. E roteiro precisa de trinta segundos que ninguém tem.",
+    meta: { client: "Desco", discipline: "Campanha & Filme", year: "2025" },
+    effect: "liquid",
+    caption: `Teste que a gente aplica em toda campanha antes de produzir: congele num quadro só.
+
+Se aquele quadro, sozinho, sem som e sem legenda, já entrega a ideia — a campanha tem um centro. Se precisar dos trinta segundos inteiros para fazer sentido, o que existe é enredo, não conceito.
+
+Enredo é caro, exige atenção contínua e some no scroll. Conceito sobrevive a ser visto pela metade, de lado, no mudo.
+
+Não é contra filme. É contra filme que depende de ser assistido até o fim para justificar o orçamento.
+
+${TAGS_BASE} #Campanha #DireçãoDeArte`,
+    imagePrompt:
+      "Liquid chrome sculpture caught mid-collapse, mirror surface reflecting a single overhead light bar, acid-green bounce, black void, impossible product still, --ar 4:5 --style raw --v 6",
+    background: shader("chrome", 380),
+  },
+  {
+    id: 71,
+    slug: "tom-de-voz-e-recusa",
+    pillar: "conteudo",
+    archetype: "minimal",
+    theme: "paper",
+    tag: "CONTEÚDO / VOZ",
+    headline: "Tom de voz é uma lista de *recusas*.",
+    subheadline: "Não são as palavras que a marca usa. São as que ela se proíbe.",
+    meta: { client: "Desco", discipline: "Tom de voz", year: "2025" },
+    colophon: true,
+    caption: `Manual de tom de voz costuma ser um adjetivo atrás do outro: "próxima, confiante, descontraída mas profissional".
+
+Isso não orienta ninguém às duas da tarde, na hora de escrever a legenda.
+
+O que orienta é a lista do que a marca não diz. Nada de "somos apaixonados pelo que fazemos". Nada de exclamação para fingir energia. Nada de "solução completa". Nada de emoji fazendo o trabalho que a frase não fez.
+
+Recusa é operável. Adjetivo é decoração.
+
+Comece pela lista negra. O tom aparece sozinho no que sobra.
+
+${TAGS_BASE} #TomDeVoz #Conteúdo #Copywriting`,
+    imagePrompt:
+      "Fine halftone screen on warm off-white stock, sparse ink dots forming a soft gradient, letterpress paper tooth visible, minimal and quiet, --ar 4:5 --style raw --v 6",
+    background: shader("halftone", 387),
+  },
+  {
+    id: 72,
+    slug: "o-mesmo-criterio",
+    pillar: "casos",
+    archetype: "split",
+    theme: "dark",
+    tag: "CASOS / CRITÉRIO",
+    headline: "Tinta, futebol e energia. O mesmo *critério*.",
+    subheadline: "Setor muda tudo, menos a pergunta que a gente faz primeiro.",
+    meta: { client: "Portfólio Desco", discipline: "Casos selecionados", year: "2015—2025" },
+    caption: `Já fizemos marca de tinta, de alimento, de energia, de clube de futebol, de escola e de incorporadora.
+
+Perguntam se não é disperso demais. Não é — porque a pergunta de abertura é sempre a mesma: o que essa marca defende que a concorrência não pode copiar sem virar cópia?
+
+O que muda é a resposta e o vocabulário. O critério é idêntico.
+
+Agência que só atende um setor aprende o jargão daquele setor. A gente prefere aprender o problema, que é a parte que se repete.
+
+${TAGS_BASE} #Casos #Portfólio`,
+    imagePrompt:
+      "Domain-warped strata resembling geological layers, dark olive and graphite, thin acid seam running through, cross-section aesthetic, --ar 4:5 --style raw --v 6",
+    background: shader("warp", 394),
+  },
+  {
+    id: 73,
+    slug: "distancia-como-vantagem",
+    pillar: "interior",
+    archetype: "stat",
+    theme: "dark",
+    tag: "INTERIOR / MÉTODO",
+    headline: "*330 km* da Paulista. De propósito.",
+    subheadline: "Distância suficiente para não repetir o que todo mundo está fazendo lá.",
+    stat: { value: "330", label: "km de Bauru até a avenida onde as tendências se copiam mais rápido" },
+    meta: { client: "Desco", discipline: "Cultura Desco", year: "2015—" },
+    caption: `Trezentos e trinta quilômetros.
+
+Perto o bastante para atender qualquer cliente do país sem fricção. Longe o bastante para não pegar a tendência da semana por osmose.
+
+Em bolha criativa densa, todo mundo vê as mesmas referências no mesmo dia e chega nas mesmas soluções no mesmo mês. O resultado é um mercado inteiro parecido consigo mesmo.
+
+Distância não é limitação a ser compensada. É filtro. Chega menos ruído, e o que chega precisa ser bom o suficiente para viajar.
+
+Bauru por escolha. Faz dez anos.
+
+${TAGS_BASE} #Bauru #InteriorPaulista #CulturaDesco`,
+    imagePrompt:
+      "Inflated glossy form isolated on black, soft plastic sheen, single hard highlight, acid rim light, minimal product render, --ar 4:5 --style raw --v 6",
+    background: shader("inflate", 401),
   },
 ];
 
